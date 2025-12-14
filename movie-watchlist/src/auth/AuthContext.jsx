@@ -1,28 +1,33 @@
 import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [username, setUsername] = useState(() => localStorage.getItem('username'));
+  const [email, setEmail] = useState(() => localStorage.getItem('email'));
 
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      localStorage.setItem('username', username || '');
+      if (email) localStorage.setItem('email', email);
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     } else {
       localStorage.removeItem('token');
-      localStorage.removeItem('username');
+      localStorage.removeItem('email');
+      delete axios.defaults.headers.common.Authorization;
     }
-  }, [token, username]);
+  }, [token, email]);
 
   function logout() {
     setToken(null);
-    setUsername(null);
+    setEmail(null);
   }
 
+  const value = { token, setToken, email, setEmail, logout };
+
   return (
-    <AuthContext.Provider value={{ token, setToken, username, setUsername, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

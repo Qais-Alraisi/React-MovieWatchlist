@@ -1,54 +1,45 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from './AuthContext';
+import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [msg, setMsg] = useState('');
-  const { setToken, setUsername: setCtxUsername } = useContext(AuthContext);
+  const { setToken, setEmail: setCtxEmail } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   async function submit(e) {
     e.preventDefault();
     setMsg('');
+    if (password !== confirm) return setMsg('Passwords do not match');
     try {
-      const res = await fetch('http://localhost:4000/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setMsg(data.message || 'Error');
-        return;
-      }
-      // auto-login after register
-      const loginRes = await fetch('http://localhost:4000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (!loginRes.ok) {
-        setMsg('Registered but login failed');
-        return;
-      }
-      const { token } = await loginRes.json();
+      await axios.post('http://localhost:4000/api/register', { email, password });
+      const loginRes = await axios.post('http://localhost:4000/api/login', { email, password });
+      const { token } = loginRes.data;
       setToken(token);
-      setCtxUsername(username);
+      setCtxEmail(email);
+      navigate('/watchlist');
     } catch (err) {
-      setMsg('Network error');
+      setMsg(err.response?.data?.message || 'Registration failed');
     }
   }
 
   return (
     <div className="auth-card">
-      <h2>Register</h2>
+      <h1>🎥 Movie Watchlist</h1>
       <form onSubmit={submit}>
-        <label>Username</label>
-        <input value={username} onChange={(e) => setUsername(e.target.value)} />
+        <label>Email</label>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
         <label>Password</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit">Register</button>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <label>Confirm Password</label>
+        <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+        <button type="submit" className="primary">Create Account</button>
       </form>
+      <p className="muted">Already have an account? <Link to="/login">Login</Link></p>
       {msg && <p className="error">{msg}</p>}
     </div>
   );
