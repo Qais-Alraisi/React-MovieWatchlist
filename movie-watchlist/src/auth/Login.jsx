@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from './AuthContext';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,18 +7,23 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
-  const { setToken, setEmail: setCtxEmail } = useContext(AuthContext);
+  const { token, setToken, setEmail: setCtxEmail } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      navigate('/watchlist');
+    }
+  }, [token, navigate]);
 
   async function submit(e) {
     e.preventDefault();
     setMsg('');
     try {
-      const res = await axios.post('http://localhost:4000/api/login', { email, password });
+      const res = await axios.post('http://localhost:4001/api/login', { email, password });
       const { token } = res.data;
       setToken(token);
       setCtxEmail(email);
-      navigate('/watchlist');
     } catch (err) {
       setMsg(err.response?.data?.message || 'Login failed');
     }

@@ -20,7 +20,7 @@ export default function Watchlist() {
   async function fetchMovies() {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:4000/api/movies');
+      const res = await axios.get('http://localhost:4001/api/movies');
       setMovies(res.data.movies || []);
     } catch (err) {
       if (err.response?.status === 401) {
@@ -33,7 +33,7 @@ export default function Watchlist() {
 
   async function addMovie(payload) {
     try {
-      const res = await axios.post('http://localhost:4000/api/movies', payload);
+      const res = await axios.post('http://localhost:4001/api/movies', payload);
       const movie = res.data.movie;
       setMovies((m) => [movie, ...m]);
     } catch (err) {
@@ -43,7 +43,7 @@ export default function Watchlist() {
 
   async function toggleWatched(movie) {
     try {
-      const res = await axios.put(`http://localhost:4000/api/movies/${movie.id}`, { watched: !movie.watched });
+      const res = await axios.put(`http://localhost:4001/api/movies/${movie.id}`, { watched: !movie.watched });
       const updated = res.data.movie;
       setMovies((m) => m.map((it) => (it.id === updated.id ? updated : it)));
     } catch (err) {
@@ -53,7 +53,7 @@ export default function Watchlist() {
 
   async function deleteMovie(movie) {
     try {
-      await axios.delete(`http://localhost:4000/api/movies/${movie.id}`);
+      await axios.delete(`http://localhost:4001/api/movies/${movie.id}`);
       setMovies((m) => m.filter((it) => it.id !== movie.id));
     } catch (err) {
       // ignore
